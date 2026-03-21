@@ -1,26 +1,151 @@
+@import url("https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-brand-orange: #FF7A2E;
+  --color-brand-blue: #2491BF;
+  --color-bg-primary: #FFFFFF;
+  --color-bg-warm: #FAFAF8;
+  --color-bg-accent: #F5F3EF;
+  --color-surface: #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #4A4A4A;
+  --color-text-muted: #8A8A8A;
+  --color-border: #E8E5E0;
+  --color-border-light: #F0EDE8;
+  --font-sans: "Carlito", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ── Base ────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Utility ─────────────────────────────── */
+.section-padding {
+  padding: 5rem 0;
+}
+
+.container-narrow {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ── Cards ───────────────────────────────── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* ── Book cover ──────────────────────────── */
+.book-cover {
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.12);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.book-cover:hover {
+  transform: scale(1.03);
+  box-shadow: 6px 6px 30px rgba(0, 0, 0, 0.18);
+}
+
+/* ── Accent line ─────────────────────────── */
+.accent-line {
+  width: 3rem;
+  height: 3px;
+  background: var(--color-brand-orange);
+  border-radius: 2px;
+}
+
+/* ── Badge ───────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-warm);
+}
+
+/* ── Button ──────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #fff;
+  background: var(--color-brand-orange);
+  border-radius: 0.5rem;
+  transition: background 0.2s, transform 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: #e86d1f;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.5rem;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  border-color: var(--color-brand-orange);
+  background: rgba(255, 122, 46, 0.04);
+}
+
+/* ── Reader security ─────────────────────── */
+.reader-secure {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.reader-secure * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media print {
+  .reader-secure {
+    display: none !important;
+  }
 }

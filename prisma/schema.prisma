@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  clerkId   String     @unique
+  email     String     @unique
+  name      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  purchases Purchase[]
+  orders    Order[]
+}
+
+model Book {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  title       String
+  titleHindi  String?
+  description String      @db.Text
+  price       Int // Price in paise (19900 = ₹199)
+  coverImage  String
+  pdfFilename String // Filename in /private/books/
+  language    String      @default("en")
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  purchases   Purchase[]
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id])
+  razorpayOrderId   String      @unique
+  razorpayPaymentId String?
+  amount            Int // Total in paise
+  currency          String      @default("INR")
+  status            OrderStatus @default(CREATED)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  items             OrderItem[]
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+  bookId  String
+  book    Book   @relation(fields: [bookId], references: [id])
+  price   Int // Snapshot of price at purchase time
+
+  @@index([orderId])
+}
+
+model Purchase {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+  bookId    String
+  book      Book           @relation(fields: [bookId], references: [id])
+  orderId   String? // Null for migrated purchases
+  source    PurchaseSource @default(RAZORPAY)
+  createdAt DateTime       @default(now())
+
+  @@unique([userId, bookId]) // One purchase per user per book
+  @@index([userId])
+}
+
+model LegacyUser {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  name               String?
+  phone              String?
+  purchasedHindi     Boolean   @default(false)
+  purchasedEnglish   Boolean   @default(false)
+  purchasedCorporate Boolean   @default(false)
+  migratedAt         DateTime? // Set when matched to a Clerk user
+}
+
+enum PurchaseSource {
+  RAZORPAY
+  MIGRATED
+}
+
+enum OrderStatus {
+  CREATED
+  PAID
+  FAILED
+}
