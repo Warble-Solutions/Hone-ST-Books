@@ -1,15 +1,22 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="bg-bg-warm border-t border-border">
-      <div className="container-narrow py-12">
+    <footer className="bg-bg-warm border-t border-border mt-16">
+      <div className="container-narrow py-16" style={{ paddingTop: '4rem' }}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-lg font-bold text-text-primary tracking-tight mb-2">
-              Hone<span className="text-brand-orange">ST</span> Books
-            </h3>
+            <Link href="/">
+              <Image
+                src="/logo/hone-ST-logo.png"
+                alt="Hone ST Books"
+                width={140}
+                height={46}
+                className="h-10 w-auto mb-3"
+              />
+            </Link>
             <p className="text-text-muted text-sm leading-relaxed">
               Premium eBooks bringing the timeless wisdom of the Bhagavad Gita to modern readers.
             </p>
@@ -35,14 +42,14 @@ export default function Footer() {
             <p className="text-text-muted text-sm mb-2">
               Have questions? Reach out to us.
             </p>
-            <a href="mailto:support@honestbooks.com" className="text-brand-orange text-sm hover:underline">
-              support@honestbooks.com
+            <a href="mailto:honestsol.inquiry@gmail.com" className="text-brand-orange text-sm hover:underline">
+              honestsol.inquiry@gmail.com
             </a>
           </div>
         </div>
 
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-muted">
-          <span>© {new Date().getFullYear()} HoneST Books. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Hone ST Solutions. All rights reserved.</span>
           <div className="flex gap-4">
             <Link href="#" className="hover:text-text-secondary transition-colors">Privacy Policy</Link>
             <Link href="#" className="hover:text-text-secondary transition-colors">Terms of Service</Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useState } from "react";
 
@@ -12,10 +13,15 @@ export default function Header() {
       <nav className="container-narrow">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-lg font-bold text-text-primary tracking-tight">
-              Hone<span className="text-brand-orange">ST</span> Books
-            </span>
+          <Link href="/">
+            <Image
+              src="/logo/hone-ST-logo.png"
+              alt="Hone ST Books"
+              width={120}
+              height={40}
+              className="h-9 w-auto"
+              priority
+            />
           </Link>
 
           {/* Desktop Nav */}

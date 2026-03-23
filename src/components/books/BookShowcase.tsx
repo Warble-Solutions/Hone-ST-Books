@@ -2,15 +2,10 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { BOOKS } from "@/lib/constants";
 
 export default function BookShowcase() {
-  const colors = [
-    "from-orange-400 to-orange-600",
-    "from-sky-400 to-blue-600",
-    "from-violet-400 to-purple-600",
-  ];
-
   return (
     <section id="books" className="section-padding bg-bg-primary">
       <div className="container-narrow">
@@ -35,16 +30,14 @@ export default function BookShowcase() {
             >
               <div className="card overflow-hidden group">
                 {/* Cover */}
-                <div className="relative h-56 overflow-hidden">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${colors[i]} transition-transform duration-500 group-hover:scale-105`} />
-                  <div className="absolute inset-0 flex items-center justify-center p-6">
-                    <div className="text-center">
-                      <h3 className="text-white font-bold text-lg drop-shadow-md">{book.title}</h3>
-                      {book.titleHindi && (
-                        <p className="text-white/80 text-sm mt-1">{book.titleHindi}</p>
-                      )}
-                    </div>
-                  </div>
+                <div className="relative h-72 overflow-hidden bg-neutral-100">
+                  <Image
+                    src={book.coverImage}
+                    alt={book.title}
+                    fill
+                    className="object-contain transition-transform duration-500 group-hover:scale-105 p-2"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
                   <div className="absolute top-3 right-3">
                     <span className="badge !bg-white/90 !text-text-primary !border-0 text-xs">
                       {book.language === "hi" ? "हिंदी" : "English"}
@@ -54,7 +47,11 @@ export default function BookShowcase() {
 
                 {/* Content */}
                 <div className="p-5">
-                  <p className="text-text-muted text-sm leading-relaxed line-clamp-3">
+                  <h3 className="text-text-primary font-bold">{book.title}</h3>
+                  {book.titleHindi && (
+                    <p className="text-brand-orange text-sm mt-0.5">{book.titleHindi}</p>
+                  )}
+                  <p className="text-text-muted text-sm leading-relaxed line-clamp-3 mt-2">
                     {book.description}
                   </p>
                   <div className="flex items-center justify-between mt-5">

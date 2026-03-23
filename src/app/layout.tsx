@@ -15,6 +15,10 @@ export const metadata: Metadata = {
     "Spiritual",
     "Wisdom",
   ],
+  icons: {
+    icon: "/logo/fvicon.png",
+    apple: "/logo/fvicon.png",
+  },
   openGraph: {
     title: "Hone ST Books | Premium Bhagavad Gita eBooks",
     description:

@@ -61,7 +61,7 @@ export default function Home() {
               Start Your Journey Today
             </h2>
             <p className="text-text-muted max-w-md mx-auto mb-8">
-              Unlock the wisdom of the ages with our premium eBook collection. Available for just ₹199 each.
+              Unlock the wisdom of the ages with our premium eBook collection. Available for just ₹200 each.
             </p>
             <a href="#books" className="btn-primary">
               Browse Collection

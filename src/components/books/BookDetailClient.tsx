@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import type { BookInfo } from "@/lib/constants";
@@ -63,13 +64,6 @@ export default function BookDetailClient({ book }: Props) {
     }
   };
 
-  const colors = [
-    { slug: "bhagavad-gita-hindi", gradient: "from-orange-400 to-orange-600" },
-    { slug: "bhagavad-gita-english", gradient: "from-sky-400 to-blue-600" },
-    { slug: "corporate-bhagavad-gita", gradient: "from-violet-400 to-purple-600" },
-  ];
-  const gradient = colors.find((c) => c.slug === book.slug)?.gradient || "from-gray-400 to-gray-600";
-
   return (
     <div className="container-narrow py-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
@@ -81,13 +75,15 @@ export default function BookDetailClient({ book }: Props) {
           className="flex justify-center lg:sticky lg:top-24"
         >
           <div className="book-cover">
-            <div className={`w-64 h-[360px] sm:w-72 sm:h-[400px] rounded-lg bg-gradient-to-br ${gradient} flex flex-col justify-end p-7`}>
-              <h2 className="text-white font-bold text-2xl leading-tight drop-shadow-md">
-                {book.title}
-              </h2>
-              {book.titleHindi && (
-                <p className="text-white/80 text-base mt-1">{book.titleHindi}</p>
-              )}
+            <div className="relative w-64 h-[360px] sm:w-72 sm:h-[400px] rounded-lg overflow-hidden bg-bg-accent">
+              <Image
+                src={book.coverImage}
+                alt={book.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 256px, 288px"
+                priority
+              />
             </div>
           </div>
         </motion.div>

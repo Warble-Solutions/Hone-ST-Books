@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { BOOKS } from "@/lib/constants";
 
 export default function HeroSection() {
@@ -36,7 +37,7 @@ export default function HeroSection() {
             <div className="flex gap-10 mt-12 pt-8 border-t border-border">
               {[
                 { value: "3", label: "Premium Books" },
-                { value: "₹199", label: "Starting Price" },
+                { value: "₹200", label: "Starting Price" },
                 { value: "Instant", label: "Digital Access" },
               ].map((stat, i) => (
                 <div key={i}>
@@ -56,11 +57,6 @@ export default function HeroSection() {
           >
             <div className="relative w-80 h-96">
               {BOOKS.map((book, i) => {
-                const colors = [
-                  "from-orange-400 to-orange-600",
-                  "from-sky-400 to-blue-600",
-                  "from-violet-400 to-purple-600",
-                ];
                 const offsets = [
                   { x: 0, y: 0, rotate: -6 },
                   { x: 30, y: -10, rotate: 0 },
@@ -81,12 +77,14 @@ export default function HeroSection() {
                       zIndex: i,
                     }}
                   >
-                    <div
-                      className={`w-52 h-72 rounded-lg bg-gradient-to-br ${colors[i]} shadow-xl flex items-end p-5`}
-                    >
-                      <span className="text-white font-bold text-sm leading-snug drop-shadow-md">
-                        {book.title}
-                      </span>
+                    <div className="w-52 h-72 rounded-lg overflow-hidden shadow-xl">
+                      <Image
+                        src={book.coverImage}
+                        alt={book.title}
+                        width={208}
+                        height={288}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </motion.div>
                 );
