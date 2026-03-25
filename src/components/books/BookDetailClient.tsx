@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Script from "next/script";
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import type { BookInfo } from "@/lib/constants";
@@ -154,7 +155,7 @@ export default function BookDetailClient({ book }: Props) {
         </motion.div>
       </div>
 
-      <script src="https://checkout.razorpay.com/v1/checkout.js" async />
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
     </div>
   );
 }
