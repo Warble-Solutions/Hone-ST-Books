@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { readFile } from "fs/promises";
-import path from "path";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { r2, R2_BUCKET } from "@/lib/r2";
 
 export async function GET(
   req: NextRequest,
@@ -45,11 +45,30 @@ export async function GET(
       );
     }
 
-    // Read PDF from private directory
-    const pdfPath = path.join(process.cwd(), "private", "books", book.pdfFilename);
-
+    // Fetch PDF from Cloudflare R2
     try {
-      const pdfBuffer = await readFile(pdfPath);
+      const command = new GetObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: `books/${book.pdfFilename}`,
+      });
+
+      const response = await r2.send(command);
+
+      if (!response.Body) {
+        throw new Error("Empty response from R2");
+      }
+
+      // Convert the readable stream to a buffer
+      const chunks: Uint8Array[] = [];
+      const reader = response.Body.transformToWebStream().getReader();
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+      }
+
+      const pdfBuffer = Buffer.concat(chunks);
 
       return new NextResponse(pdfBuffer, {
         headers: {
@@ -60,8 +79,8 @@ export async function GET(
           "Content-Security-Policy": "default-src 'none'",
         },
       });
-    } catch {
-      console.error("PDF file not found:", pdfPath);
+    } catch (err) {
+      console.error("Failed to fetch PDF from R2:", err);
       return NextResponse.json(
         { error: "Book file not available" },
         { status: 404 }
