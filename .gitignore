@@ -50,3 +50,6 @@ private/
 
 # Deploy artifacts
 hostinger-deploy.zip
+
+# SQL dumps (sensitive data)
+*.sql
