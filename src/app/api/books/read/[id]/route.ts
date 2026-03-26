@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { getDownloadUrl } from "@vercel/blob";
+import { getDownloadUrl, list } from "@vercel/blob";
 
 export async function GET(
   req: NextRequest,
@@ -44,49 +44,26 @@ export async function GET(
       );
     }
 
-    // Fetch PDF from Vercel Blob (private store)
-    try {
-      // Find the blob by listing and matching the filename
-      const { list } = await import("@vercel/blob");
-      const blobs = await list({ prefix: `books/${book.pdfFilename}` });
-      
-      const matchingBlob = blobs.blobs.find(b => b.pathname === `books/${book.pdfFilename}`);
-      
-      if (!matchingBlob) {
-        console.error(`Blob not found for: books/${book.pdfFilename}`);
-        console.error(`Available blobs:`, blobs.blobs.map(b => b.pathname));
-        return NextResponse.json(
-          { error: "Book file not found in storage" },
-          { status: 404 }
-        );
-      }
+    // Find the blob
+    const blobs = await list({ prefix: `books/${book.pdfFilename}` });
+    const matchingBlob = blobs.blobs.find(
+      (b) => b.pathname === `books/${book.pdfFilename}`
+    );
 
-      const downloadUrl = await getDownloadUrl(matchingBlob.url);
-      const response = await fetch(downloadUrl);
-
-      if (!response.ok) {
-        console.error(`Blob fetch failed: ${response.status} ${response.statusText}`);
-        throw new Error(`Blob fetch failed: ${response.status}`);
-      }
-
-      const pdfBuffer = Buffer.from(await response.arrayBuffer());
-
-      return new NextResponse(pdfBuffer, {
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": "inline",
-          "Cache-Control": "no-store, no-cache, must-revalidate",
-          "X-Content-Type-Options": "nosniff",
-          "Content-Security-Policy": "default-src 'none'",
-        },
-      });
-    } catch (err) {
-      console.error("Failed to fetch PDF from Blob:", err);
+    if (!matchingBlob) {
+      console.error(`Blob not found for: books/${book.pdfFilename}`);
       return NextResponse.json(
-        { error: "Book file not available" },
+        { error: "Book file not found in storage" },
         { status: 404 }
       );
     }
+
+    // Return a signed download URL (valid for ~1 hour)
+    // This lets the client fetch directly from Blob storage,
+    // bypassing the serverless function's 4.5MB response limit
+    const downloadUrl = await getDownloadUrl(matchingBlob.url);
+
+    return NextResponse.json({ url: downloadUrl });
   } catch (error) {
     console.error("Error serving PDF:", error);
     return NextResponse.json(

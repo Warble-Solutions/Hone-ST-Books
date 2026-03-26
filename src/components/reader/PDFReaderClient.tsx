@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import { useState } from "react";
 import Link from "next/link";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -19,6 +18,31 @@ export default function PDFReaderClient({ bookSlug, bookTitle }: Props) {
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch signed download URL from our API
+  useEffect(() => {
+    async function fetchPdfUrl() {
+      try {
+        const res = await fetch(`/api/books/read/${bookSlug}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.error || "Failed to load book");
+          setLoading(false);
+          return;
+        }
+
+        setPdfUrl(data.url);
+      } catch {
+        setError("Failed to load book");
+        setLoading(false);
+      }
+    }
+
+    fetchPdfUrl();
+  }, [bookSlug]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && (e.key === "p" || e.key === "s" || e.key === "c")) {
@@ -80,33 +104,41 @@ export default function PDFReaderClient({ bookSlug, bookTitle }: Props) {
       {/* PDF */}
       <div className="flex-1 overflow-auto flex justify-center py-8 px-4">
         {loading && (
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-10 w-10 border-2 border-border border-t-brand-orange" />
           </div>
         )}
-        <Document
-          file={`/api/books/read/${bookSlug}`}
-          onLoadSuccess={onDocumentLoadSuccess}
-          loading={
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="animate-spin rounded-full h-10 w-10 border-2 border-border border-t-brand-orange" />
-            </div>
-          }
-          error={
-            <div className="text-center py-20">
-              <p className="text-red-600 text-base mb-1">Failed to load book</p>
-              <p className="text-text-muted text-sm">Please try again later.</p>
-            </div>
-          }
-        >
-          <Page
-            pageNumber={pageNumber}
-            scale={scale}
-            renderTextLayer={false}
-            renderAnnotationLayer={false}
-            className="shadow-lg rounded-sm"
-          />
-        </Document>
+        {error && (
+          <div className="text-center py-20">
+            <p className="text-red-600 text-base mb-1">{error}</p>
+            <p className="text-text-muted text-sm">Please try again later.</p>
+          </div>
+        )}
+        {pdfUrl && (
+          <Document
+            file={pdfUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            loading={
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-border border-t-brand-orange" />
+              </div>
+            }
+            error={
+              <div className="text-center py-20">
+                <p className="text-red-600 text-base mb-1">Failed to load PDF</p>
+                <p className="text-text-muted text-sm">Please try again later.</p>
+              </div>
+            }
+          >
+            <Page
+              pageNumber={pageNumber}
+              scale={scale}
+              renderTextLayer={false}
+              renderAnnotationLayer={false}
+              className="shadow-lg rounded-sm"
+            />
+          </Document>
+        )}
       </div>
 
       {/* Bottom nav */}
