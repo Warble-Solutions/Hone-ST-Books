@@ -46,13 +46,26 @@ export async function GET(
 
     // Fetch PDF from Vercel Blob (private store)
     try {
-      const blobStoreUrl = process.env.BLOB_STORE_URL || "https://zr0nlbp14zcaaxzq.private.blob.vercel-storage.com";
-      const blobUrl = `${blobStoreUrl}/books/${book.pdfFilename}`;
-      const downloadUrl = await getDownloadUrl(blobUrl);
+      // Find the blob by listing and matching the filename
+      const { list } = await import("@vercel/blob");
+      const blobs = await list({ prefix: `books/${book.pdfFilename}` });
+      
+      const matchingBlob = blobs.blobs.find(b => b.pathname === `books/${book.pdfFilename}`);
+      
+      if (!matchingBlob) {
+        console.error(`Blob not found for: books/${book.pdfFilename}`);
+        console.error(`Available blobs:`, blobs.blobs.map(b => b.pathname));
+        return NextResponse.json(
+          { error: "Book file not found in storage" },
+          { status: 404 }
+        );
+      }
 
+      const downloadUrl = await getDownloadUrl(matchingBlob.url);
       const response = await fetch(downloadUrl);
 
       if (!response.ok) {
+        console.error(`Blob fetch failed: ${response.status} ${response.statusText}`);
         throw new Error(`Blob fetch failed: ${response.status}`);
       }
 
