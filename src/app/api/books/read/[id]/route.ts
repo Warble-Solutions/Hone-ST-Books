@@ -46,7 +46,8 @@ export async function GET(
 
     // Fetch PDF from Vercel Blob (private store)
     try {
-      const blobUrl = `books/${book.pdfFilename}`;
+      const blobStoreUrl = process.env.BLOB_STORE_URL || "https://zr0nlbp14zcaaxzq.private.blob.vercel-storage.com";
+      const blobUrl = `${blobStoreUrl}/books/${book.pdfFilename}`;
       const downloadUrl = await getDownloadUrl(blobUrl);
 
       const response = await fetch(downloadUrl);

@@ -24,12 +24,18 @@ async function main() {
   let user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
-    console.log("  User not found in DB. They need to sign up via Clerk first.");
-    console.log("  Sign up at the site, then run this script again.");
-    process.exit(1);
+    console.log("  User not in DB — creating...");
+    user = await prisma.user.create({
+      data: {
+        email,
+        clerkId: `demo_${Date.now()}`,
+        name: "Demo User",
+      },
+    });
+    console.log(`  ✅ Created user: ${user.id}\n`);
+  } else {
+    console.log(`  ✅ Found user: ${user.name || user.email} (${user.id})\n`);
   }
-
-  console.log(`  ✅ Found user: ${user.name || user.email} (${user.id})\n`);
 
   // Get all books
   const books = await prisma.book.findMany();
