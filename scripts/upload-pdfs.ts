@@ -46,7 +46,7 @@ async function main() {
     const fileBuffer = readFileSync(filePath);
 
     const blob = await put(blobPath, fileBuffer, {
-      access: "public",
+      access: "private",
       addRandomSuffix: false,
     });
 

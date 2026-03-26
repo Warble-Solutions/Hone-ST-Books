@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { getDownloadUrl } from "@vercel/blob";
 
 export async function GET(
   req: NextRequest,
@@ -43,11 +44,12 @@ export async function GET(
       );
     }
 
-    // Fetch PDF from Vercel Blob
-    const blobUrl = `${process.env.BLOB_BASE_URL}/books/${book.pdfFilename}`;
-
+    // Fetch PDF from Vercel Blob (private store)
     try {
-      const response = await fetch(blobUrl);
+      const blobUrl = `books/${book.pdfFilename}`;
+      const downloadUrl = await getDownloadUrl(blobUrl);
+
+      const response = await fetch(downloadUrl);
 
       if (!response.ok) {
         throw new Error(`Blob fetch failed: ${response.status}`);
