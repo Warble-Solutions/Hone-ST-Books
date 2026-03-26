@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { resend } from "@/lib/resend";
+import { getResend } from "@/lib/resend";
 
 export async function POST(req: NextRequest) {
   try {
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       // Send confirmation email
       try {
         const bookTitles = order.items.map((item) => item.book.title);
-        await resend.emails.send({
+        await getResend().emails.send({
           from: "Hone ST Books <noreply@honestbooks.com>",
           to: order.user.email,
           subject: `Purchase Confirmed — ${bookTitles.join(", ")}`,
