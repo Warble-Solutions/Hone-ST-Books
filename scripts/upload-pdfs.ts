@@ -1,32 +1,27 @@
 /**
- * One-time script to upload PDFs from private/books/ to Cloudflare R2.
+ * One-time script to upload PDFs from private/books/ to Vercel Blob.
  *
  * Usage:
  *   npx tsx scripts/upload-pdfs.ts
  *
  * Required env vars (set in .env):
- *   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME
+ *   BLOB_READ_WRITE_TOKEN (from Vercel dashboard → Storage → Blob)
  */
 
 import "dotenv/config";
-import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { put, list } from "@vercel/blob";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 
-const r2 = new S3Client({
-  region: "auto",
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-  },
-});
-
-const BUCKET = process.env.R2_BUCKET_NAME || "honestbooks";
 const BOOKS_DIR = join(process.cwd(), "private", "books");
 
 async function main() {
-  console.log("📤 Uploading PDFs to Cloudflare R2...\n");
+  console.log("📤 Uploading PDFs to Vercel Blob...\n");
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    console.error("❌ BLOB_READ_WRITE_TOKEN not set in .env");
+    process.exit(1);
+  }
 
   const files = readdirSync(BOOKS_DIR).filter((f) => f.endsWith(".pdf"));
 
@@ -35,34 +30,41 @@ async function main() {
     process.exit(1);
   }
 
+  // Check existing blobs
+  const existing = await list();
+  const existingPaths = new Set(existing.blobs.map((b) => b.pathname));
+
   for (const filename of files) {
-    const key = `books/${filename}`;
+    const blobPath = `books/${filename}`;
+
+    if (existingPaths.has(blobPath)) {
+      console.log(`⏭️  ${filename} — already exists, skipping`);
+      continue;
+    }
+
     const filePath = join(BOOKS_DIR, filename);
     const fileBuffer = readFileSync(filePath);
 
-    // Check if already exists
-    try {
-      await r2.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
-      console.log(`⏭️  ${filename} — already exists, skipping`);
-      continue;
-    } catch {
-      // Doesn't exist, proceed with upload
-    }
-
-    await r2.send(
-      new PutObjectCommand({
-        Bucket: BUCKET,
-        Key: key,
-        Body: fileBuffer,
-        ContentType: "application/pdf",
-      })
-    );
+    const blob = await put(blobPath, fileBuffer, {
+      access: "public",
+      addRandomSuffix: false,
+    });
 
     const sizeMB = (fileBuffer.length / (1024 * 1024)).toFixed(1);
     console.log(`✅ ${filename} — uploaded (${sizeMB} MB)`);
+    console.log(`   URL: ${blob.url}`);
   }
 
-  console.log("\n🎉 Done! PDFs are now in R2.");
+  // Print the base URL for .env
+  const blobs = await list();
+  if (blobs.blobs.length > 0) {
+    const sampleUrl = blobs.blobs[0].url;
+    const baseUrl = sampleUrl.substring(0, sampleUrl.lastIndexOf("/books/"));
+    console.log(`\n📋 Set this in your .env:`);
+    console.log(`   BLOB_BASE_URL=${baseUrl}`);
+  }
+
+  console.log("\n🎉 Done! PDFs are now in Vercel Blob.");
 }
 
 main().catch((err) => {

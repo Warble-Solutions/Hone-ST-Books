@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { r2, R2_BUCKET } from "@/lib/r2";
 
 export async function GET(
   req: NextRequest,
@@ -45,30 +43,17 @@ export async function GET(
       );
     }
 
-    // Fetch PDF from Cloudflare R2
+    // Fetch PDF from Vercel Blob
+    const blobUrl = `${process.env.BLOB_BASE_URL}/books/${book.pdfFilename}`;
+
     try {
-      const command = new GetObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: `books/${book.pdfFilename}`,
-      });
+      const response = await fetch(blobUrl);
 
-      const response = await r2.send(command);
-
-      if (!response.Body) {
-        throw new Error("Empty response from R2");
+      if (!response.ok) {
+        throw new Error(`Blob fetch failed: ${response.status}`);
       }
 
-      // Convert the readable stream to a buffer
-      const chunks: Uint8Array[] = [];
-      const reader = response.Body.transformToWebStream().getReader();
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-      }
-
-      const pdfBuffer = Buffer.concat(chunks);
+      const pdfBuffer = Buffer.from(await response.arrayBuffer());
 
       return new NextResponse(pdfBuffer, {
         headers: {
@@ -80,7 +65,7 @@ export async function GET(
         },
       });
     } catch (err) {
-      console.error("Failed to fetch PDF from R2:", err);
+      console.error("Failed to fetch PDF from Blob:", err);
       return NextResponse.json(
         { error: "Book file not available" },
         { status: 404 }

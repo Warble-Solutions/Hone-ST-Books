@@ -96,7 +96,6 @@ async function main() {
   // Seed legacy users from SQL dump
   const sqlPath = path.join(
     process.cwd(),
-    "..",
     "u391665738_honestsolution.sql"
   );
 
