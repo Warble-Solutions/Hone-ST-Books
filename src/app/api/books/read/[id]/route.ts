@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { getDownloadUrl, list } from "@vercel/blob";
+import { list } from "@vercel/blob";
 
 export async function GET(
   req: NextRequest,
@@ -58,12 +58,32 @@ export async function GET(
       );
     }
 
-    // Return a signed download URL (valid for ~1 hour)
-    // This lets the client fetch directly from Blob storage,
-    // bypassing the serverless function's 4.5MB response limit
-    const downloadUrl = await getDownloadUrl(matchingBlob.url);
+    // Fetch the PDF server-side using the token (private blob)
+    const blobResponse = await fetch(matchingBlob.url, {
+      headers: {
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+      },
+    });
 
-    return NextResponse.json({ url: downloadUrl });
+    if (!blobResponse.ok || !blobResponse.body) {
+      console.error(`Blob fetch failed: ${blobResponse.status}`);
+      return NextResponse.json(
+        { error: "Book file not available" },
+        { status: 404 }
+      );
+    }
+
+    // Stream the response directly — don't buffer into memory
+    return new Response(blobResponse.body, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Length": matchingBlob.size.toString(),
+        "Content-Disposition": "inline",
+        "Cache-Control": "private, no-store, no-cache, must-revalidate",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'",
+      },
+    });
   } catch (error) {
     console.error("Error serving PDF:", error);
     return NextResponse.json(
